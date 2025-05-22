@@ -1,0 +1,9 @@
+android {
+    compileSdkVersion 33
+
+    defaultConfig {
+        targetSdkVersion 33
+        // ... existing code ...
+    }
+    // ... existing code ...
+} 
