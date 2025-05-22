@@ -1,0 +1,176 @@
+[33mcommit 379d303fdd8c7c6eed49cfc85c78d7d8e0a65419[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: lokihemmo <74117610+lokihemmo@users.noreply.github.com>
+Date:   Sun Mar 16 20:36:02 2025 +0800
+
+    Inital commit
+
+[1mdiff --git a/lib/forget_password.dart b/lib/forget_password.dart[m
+[1mnew file mode 100644[m
+[1mindex 0000000..4f3de0d[m
+[1m--- /dev/null[m
+[1m+++ b/lib/forget_password.dart[m
+[36m@@ -0,0 +1,133 @@[m
+[32m+[m[32mimport 'package:flutter/material.dart';[m
+[32m+[m[32mimport 'package:http/http.dart' as http;[m
+[32m+[m[32mimport 'dart:convert';[m
+[32m+[m
+[32m+[m[32mclass ForgotPasswordScreen extends StatefulWidget {[m
+[32m+[m[32m  const ForgotPasswordScreen({super.key});[m
+[32m+[m
+[32m+[m[32m  @override[m
+[32m+[m[32m  _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mclass _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {[m
+[32m+[m[32m  final TextEditingController _emailController = TextEditingController();[m
+[32m+[m[32m  bool _isLoading = false;[m
+[32m+[m[32m  String _errorMessage = '';[m
+[32m+[m[32m  String _successMessage = '';[m
+[32m+[m
+[32m+[m[32m  Future<void> _forgotPassword() async {[m
+[32m+[m[32m    setState(() {[m
+[32m+[m[32m      _isLoading = true;[m
+[32m+[m[32m      _errorMessage = '';[m
+[32m+[m[32m      _successMessage = '';[m
+[32m+[m[32m    });[m
+[32m+[m
+[32m+[m[32m    final email = _emailController.text.trim();[m
+[32m+[m
+[32m+[m[32m    if (email.isEmpty) {[m
+[32m+[m[32m      setState(() {[m
+[32m+[m[32m        _isLoading = false;[m
+[32m+[m[32m        _errorMessage = 'Please enter your email';[m
+[32m+[m[32m      });[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    final url = Uri.parse('http://127.0.0.1:8000/auth/forgot-password/'); // Adjust URL to your API[m
+[32m+[m[32m    final response = await http.post([m
+[32m+[m[32m      url,[m
+[32m+[m[32m      headers: {[m
+[32m+[m[32m        'Content-Type': 'application/json',[m
+[32m+[m[32m      },[m
+[32m+[m[32m      body: json.encode({[m
+[32m+[m[32m        'email': email,[m
+[32m+[m[32m      }),[m
+[32m+[m[32m    );[m
+[32m+[m
+[32m+[m[32m    if (response.statusCode == 200) {[m
+[32m+[m[32m      // If OTP sent successfully[m
+[32m+[m[32m      setState(() {[m
+[32m+[m[32m        _isLoading = false;[m
+[32m+[m[32m        _successMessage = 'OTP sent to your email. Please check your inbox.';[m
+[32m+[m[32m      });[m
+[32m+[m
+[32m+[m[32m      // You can navigate to another screen (e.g., Reset Password Screen) here[m
+[32m+[m[32m      // Navigator.push(context, MaterialPageRoute(builder: (context) => ResetPasswordScreen(email: email)));[m
+[32m+[m
+[32m+[m[32m    } else {[m
+[32m+[m[32m      setState(() {[m
+[32m+[m[32m        _isLoading = false;[m
+[32m+[m[32m        _errorMessage = 'Failed to send reset link. Try again.';[m
+[32m+[m[32m      });[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  @override[m
+[32m+[m[32m  Widget build(BuildContext context) {[m
+[32m+[m[32m    return Scaffold([m
+[32m+[m[32m      backgroundColor: Colors.black,[m
+[32m+[m[32m      appBar: AppBar([m
+[32m+[m[32m        backgroundColor: Colors.black,[m
+[32m+[m[32m        elevation: 0,[m
+[32m+[m[32m        title: const Text([m
+[32m+[m[32m          'Forgot Password',[m
+[32m+[m[32m          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),[m
+[32m+[m[32m        ),[m
+[32m+[m[32m        leading: IconButton([m
+[32m+[m[32m          icon: const Icon(Icons.arrow_back, color: Colors.white),[m
+[32m+[m[32m          onPressed: () => Navigator.pop(context),[m
+[32m+[m[32m        ),[m
+[32m+[m[32m      ),[m
+[32m+[m[32m      body: Padding([m
+[32m+[m[32m        padding: const EdgeInsets.all(16.0),[m
+[32m+[m[32m        child: Column([m
+[32m+[m[32m          crossAxisAlignment: CrossAxisAlignment.start,[m
+[32m+[m[32m          children: [[m
+[32m+[m[32m            const Text([m
+[32m+[m[32m              'Enter your email to receive a password reset link.',[m
+[32m+[m[32m              style: TextStyle(fontSize: 16, color: Colors.white),[m
+[32m+[m[32m            ),[m
+[32m+[m[32m            const SizedBox(height: 20),[m
+[32m+[m[32m            TextField([m
+[32m+[m[32m              controller: _emailController,[m
+[32m+[m[32m              decoration: InputDecoration([m
+[32m+[m[32m                labelText: 'Email',[m
+[32m+[m[32m                filled: true,[m
+[32m+[m[32m                fillColor: Colors.white10,[m
+[32m+[m[32m                labelStyle: const TextStyle(color: Colors.white),[m
+[32m+[m[32m                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),[m
+[32m+[m[32m              ),[m
+[32m+[m[32m              style: const TextStyle(color: Colors.white),[m
+[32m+[m[32m              keyboardType: TextInputType.emailAddress,[m
+[32m+[m[32m            ),[m
+[32m+[m[32m            const SizedBox(height: 20),[m
+[32m+[m[32m            Center([m
+[32m+[m[32m              child: ElevatedButton([m
+[32m+[m[32m                onPressed: _forgotPassword,[m
+[32m+[m[32m                style: ElevatedButton.styleFrom([m
+[32m+[m[32m                  backgroundColor: Colors.white,[m
+[32m+[m[32m                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),[m
+[32m+[m[32m                ),[m
+[32m+[m[32m                child: _isLoading[m
+[32m+[m[32m                    ? const CircularProgressIndicator([m
+[32m+[m[32m                        color: Colors.black,[m
+[32m+[m[32m                      )[m
+[32m+[m[32m                    : const Text('Send Reset Link', style: TextStyle(color: Colors.black)),[m
+[32m+[m[32m              ),[m
+[32m+[m[32m            ),[m
+[32m+[m[32m            const SizedBox(height: 20),[m
+[32m+[m[32m            if (_errorMessage.isNotEmpty)[m
+[32m+[m[32m              Text([m
+[32m+[m[32m                _errorMessage,[m
+[32m+[m[32m                style: TextStyle(color: Colors.red, fontSize: 14),[m
+[32m+[m[32m              ),[m
+[32m+[m[32m            if (_successMessage.isNotEmpty)[m
+[32m+[m[32m              Text([m
+[32m+[m[32m                _successMessage,[m
+[32m+[m[32m                style: TextStyle(color: Colors.green, fontSize: 14),[m
+[32m+[m[32m              ),[m
+[32m+[m[32m          ],[m
+[32m+[m[32m        ),[m
+[32m+[m[32m      ),[m
+[32m+[m[32m    );[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[1mdiff --git a/lib/login_screen.dart b/lib/login_screen.dart[m
+[1mnew file mode 100644[m
+[1mindex 0000000..8ee4210[m
+[1m--- /dev/null[m
+[1m+++ b/lib/login_screen.dart[m
+[36m@@ -0,0 +1,164 @@[m
+[32m+[m[32mimport 'package:flutter/material.dart';[m
+[32m+[m[32mimport 'package:http/http.dart' as http;[m
+[32m+[m[32mimport 'dart:convert';[m[41m [m
+[32m+[m
+[32m+[m[32mclass LoginScreen extends StatefulWidget {[m
+[32m+[m[32m  const LoginScreen({super.key});[m
+[32m+[m
+[32m+[m[32m  @override[m
+[32m+[m[32m  _LoginScreenState createState() => _LoginScreenState();[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mclass _LoginScreenState extends State<LoginScreen> {[m
+[32m+[m[32m  final TextEditingController emailController = TextEditingController();[m
+[32m+[m[32m  final TextEditingController passwordController = TextEditingController();[m
+[32m+[m
+[32m+[m[32m  // API URL (backend URL)[m
+[32m+[m[32m  final String apiUrl = "http://10.0.2.2:8000/auth/login_user/";[m
+[32m+[m
+[32m+[m[32m  Future<void> loginUser() async {[m
+[32m+[m[32m    final email = emailController.text;[m
+[32m+[m[32m    final password = passwordController.text;[m
+[32m+[m
+[32m+[m[32m    // Check if the email and password are not empty[m
+[32m+[m[32m    if (email.isEmpty || password.isEmpty) {[m
+[32m
