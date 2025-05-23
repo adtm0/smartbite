@@ -139,8 +139,12 @@ class FoodService {
         throw Exception('Not authenticated');
       }
 
+      final url = '${Config.updateFoodEntryUrl}${entry.id}/update/';
+      print('Updating food entry at URL: $url'); // Debug print
+      print('Request body: ${json.encode(entry.toMap())}'); // Debug print
+
       final response = await http.put(
-        Uri.parse('${Config.updateFoodEntryUrl}/${entry.id}'),
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -148,13 +152,18 @@ class FoodService {
         body: json.encode(entry.toMap()),
       );
 
+      print('Response status: ${response.statusCode}'); // Debug print
+      print('Response body: ${response.body}'); // Debug print
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return FoodEntry.fromMap(data);
       } else {
-        throw Exception('Failed to update food entry: ${response.statusCode}');
+        final errorData = json.decode(response.body);
+        throw Exception('Failed to update food entry: ${errorData['error'] ?? response.statusCode}');
       }
     } catch (e) {
+      print('Error updating food entry: $e'); // Debug print
       throw Exception('Error updating food entry: $e');
     }
   }
@@ -184,6 +193,33 @@ class FoodService {
       // No error thrown for 200/204
     } catch (e) {
       throw Exception('Error deleting food entry: $e');
+    }
+  }
+
+  // Search foods using Open Food Facts through our backend
+  static Future<List<Map<String, dynamic>>> searchFoodsOpenFoodFacts(String query) async {
+    try {
+      final token = await _getAuthToken();
+      if (token == null) {
+        throw Exception('Not authenticated');
+      }
+
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/auth/foods/search_openfoodfacts/?query=$query'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to search foods (Open Food Facts): \\${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error searching foods (Open Food Facts): $e');
     }
   }
 } 

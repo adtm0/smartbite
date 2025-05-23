@@ -217,8 +217,14 @@ def get_food_details(fdc_id):
     url = f"{USDA_API_BASE_URL}/food/{str(fdc_id)}"  # Ensure fdc_id is a string
     params = {'api_key': USDA_API_KEY}
     
+    logging.info(f"Fetching food details for FDC ID: {fdc_id}")
+    logging.info(f"Using API key: {USDA_API_KEY[:5]}...")  # Only log first 5 chars for security
+    
     try:
         response = requests.get(url, params=params)
+        logging.info(f"USDA API Response Status: {response.status_code}")
+        logging.info(f"USDA API Response: {response.text[:200]}...")  # Log first 200 chars of response
+        
         response.raise_for_status()
         data = response.json()
         
@@ -240,12 +246,20 @@ def get_food_details(fdc_id):
             elif nutrient.get('nutrient', {}).get('name') == 'Carbohydrate, by difference':
                 nutrients['carbs'] = nutrient.get('amount', 0)
         
+        logging.info(f"Extracted nutrients: {nutrients}")
+        
         return {
             'name': data.get('description', ''),
-            'nutrients': nutrients
+            'nutrients': nutrients,
+            'fdc_id': fdc_id
         }
     except requests.exceptions.RequestException as e:
         logging.error(f"Error fetching food details: {e}")
+        logging.error(f"Request URL: {url}")
+        logging.error(f"Request params: {params}")
+        if hasattr(e, 'response') and e.response is not None:
+            logging.error(f"Response status: {e.response.status_code}")
+            logging.error(f"Response text: {e.response.text}")
         return None
 
 @api_view(['GET'])
@@ -253,7 +267,6 @@ def get_food_details(fdc_id):
 def search_foods(request):
     """Search foods using USDA API"""
     query = request.query_params.get('query', '')
-    data_type = request.query_params.get('data_type', '')  # New parameter for filtering by data type
     
     if not query:
         return Response({'error': 'Query parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -266,14 +279,7 @@ def search_foods(request):
     
     url = f"{USDA_API_BASE_URL}/foods/search"
     
-    # Define available data types and their descriptions
-    available_data_types = {
-        'Foundation': 'Basic, non-branded foods with standardized nutrient values'
-    }
-    
-    # Always use Foundation data type
-    data_types = ['Foundation']
-    
+    data_types = ['Foundation', 'Survey', 'SR Legacy']
     params = {
         'api_key': USDA_API_KEY,
         'query': query,
@@ -281,20 +287,16 @@ def search_foods(request):
         'pageSize': 50,
         'sortBy': 'dataType.keyword',
         'sortOrder': 'asc',
-        'requireAllWords': True
+        'requireAllWords': False
     }
-    
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-        
         if not data.get('foods'):
             logging.warning(f"No foods found for query: {query}")
             logging.warning(f"API Response: {data}")
             return Response([])
-            
-        # Process foods
         foods = []
         for food in data.get('foods', []):
             food_data = {
@@ -302,13 +304,16 @@ def search_foods(request):
                 'name': food.get('description'),
                 'brand': food.get('brandOwner', ''),
                 'data_type': food.get('dataType', ''),
-                'data_type_description': available_data_types.get(food.get('dataType', ''), ''),
+                'data_type_description': food.get('dataType', ''),
                 'serving_size': food.get('servingSize', 100),
                 'serving_size_unit': food.get('servingSizeUnit', 'g')
             }
             foods.append(food_data)
-        
-        # Remove alphabetical sorting
+        foods.sort(key=lambda x: (
+            x['data_type'] != 'Foundation',
+            x['data_type'] != 'Survey',
+            (x['name'] or '').lower()
+        ))
         logging.info(f"Found {len(foods)} foods for query: {query}")
         return Response(foods)
     except requests.exceptions.RequestException as e:
@@ -530,3 +535,58 @@ def get_food_details_api(request, fdc_id):
             {'error': f'Unexpected error: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_foods_openfoodfacts(request):
+    query = request.query_params.get('query', '')
+    url = 'https://world.openfoodfacts.org/cgi/search.pl'
+    params = {
+        'search_terms': query,
+        'search_simple': 1,
+        'action': 'process',
+        'json': 1,
+        'page_size': 20
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    foods = []
+    for product in data.get('products', []):
+        nutrients = product.get('nutriments', {})
+        foods.append({
+            'name': product.get('product_name', ''),
+            'brand': product.get('brands', ''),
+            'calories': nutrients.get('energy-kcal_100g') or nutrients.get('energy_100g'),
+            'carbs': nutrients.get('carbohydrates_100g'),
+            'fat': nutrients.get('fat_100g'),
+            'protein': nutrients.get('proteins_100g'),
+            'image': product.get('image_front_url', ''),
+        })
+    return Response(foods)
+
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    user = request.user
+    if request.method == 'GET':
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'height': getattr(user, 'height', ''),
+            'sex': getattr(user, 'sex', ''),
+            'dob': getattr(user, 'dob', ''),
+        })
+    elif request.method == 'PUT':
+        data = request.data
+        user.username = data.get('username', user.username)
+        user.height = data.get('height', getattr(user, 'height', ''))
+        user.sex = data.get('sex', getattr(user, 'sex', ''))
+        user.dob = data.get('dob', getattr(user, 'dob', ''))
+        user.save()
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'height': getattr(user, 'height', ''),
+            'sex': getattr(user, 'sex', ''),
+            'dob': getattr(user, 'dob', ''),
+        })

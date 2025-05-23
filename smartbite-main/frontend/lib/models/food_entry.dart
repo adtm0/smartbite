@@ -98,7 +98,7 @@ class FoodEntry {
       'carbs': carbs,
       'fat': fat,
       'protein': protein,
-      'entry_date': entryDate.toIso8601String(),
+      'entry_date': entryDate.toIso8601String().split('T')[0],
       'fdc_id': fdcId,
     };
   }

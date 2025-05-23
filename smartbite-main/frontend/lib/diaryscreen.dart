@@ -18,6 +18,8 @@ class DiaryScreen extends StatefulWidget {
   State<DiaryScreen> createState() => _DiaryScreenState();
 }
 
+const int baseGoal = 1800; // Shared calorie goal for both Diary and Dashboard
+
 class _DiaryScreenState extends State<DiaryScreen> {
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
@@ -163,224 +165,340 @@ class _DiaryScreenState extends State<DiaryScreen> {
     final cardColor = theme.cardColor;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // TODO: In the future, this should be fetched from user preferences
-    const int calorieGoal = 2000;
     final double caloriesConsumed = _calculateTotalCaloriesConsumed();
     final int caloriesRemaining =
-        (calorieGoal - caloriesConsumed).clamp(0, calorieGoal).toInt();
+        (baseGoal - caloriesConsumed).clamp(0, baseGoal).toInt();
     final double calorieProgress =
-        calorieGoal == 0 ? 0.0 : caloriesConsumed / calorieGoal;
+        baseGoal == 0 ? 0.0 : caloriesConsumed / baseGoal;
 
     return WillPopScope(
       onWillPop: () async => false, // Prevent back button from working
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false, // Remove back arrow
-          title: const Text('Food Diary'),
-          actions: [
-            // Theme toggle button
-            IconButton(
-              icon: Icon(theme.brightness == Brightness.dark ? Icons.light_mode : Icons.dark_mode),
-              onPressed: widget.onToggleTheme,
+          title: const Text(
+            'Diary',
+            style: TextStyle(
+              fontFamily: 'Lexend',
+              fontWeight: FontWeight.w800,
+              fontSize: 32,
+              height: 22/32,
+              letterSpacing: 0,
+              color: Colors.black,
             ),
-            // Logout button
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          actions: [
             IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: _logout,
+              icon: Icon(theme.brightness == Brightness.dark ? Icons.light_mode : Icons.dark_mode, color: Colors.black),
+              onPressed: widget.onToggleTheme,
             ),
           ],
         ),
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: Colors.white,
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // --- Date Navigation and Calorie Summary Header ---
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                      color: theme.scaffoldBackgroundColor, // Ensure consistent background
-                      child: Column(
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Date Navigation Row
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.arrow_back_ios, color: textColor, size: 20),
-                                onPressed: () => _changeDate(-1),
-                              ),
-                              Text(
-                                DateFormat('EEEE, MMM d, yyyy').format(_selectedDate),
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.arrow_forward_ios, color: textColor, size: 20),
-                                onPressed: () => _changeDate(1),
-                              ),
-                            ],
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+                            onPressed: () => _changeDate(-1),
                           ),
-                          const SizedBox(height: 16),
-                          // Calorie Summary Circle
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: cardColor,
-                              borderRadius: BorderRadius.circular(16),
+                          Text(
+                            _selectedDate.isAtSameMomentAs(DateTime.now())
+                                ? 'Today'
+                                : DateFormat('MMM d, yyyy').format(_selectedDate),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
-                            child: Column(
-                              children: [
-                                AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 500),
-                                  child: CircularPercentIndicator(
-                                    key: ValueKey<double>(calorieProgress), // Key for animation
-                                    radius: screenWidth * 0.2,
-                                    lineWidth: 10.0,
-                                    percent: calorieProgress.clamp(0.0, 1.0),
-                                    center: Text(
-                                      "$caloriesRemaining\nRemaining",
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                          color: Colors.greenAccent, fontSize: 18),
-                                    ),
-                                    progressColor: Colors.greenAccent,
-                                    backgroundColor: Colors.white24,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    _StatColumn(icon: Icons.flag, label: "$calorieGoal"),
-                                    _StatColumn(
-                                        icon: Icons.restaurant, label: "${caloriesConsumed.toStringAsFixed(0)}"),
-                                  ],
-                                )
-                              ],
-                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 20),
+                            onPressed: () => _changeDate(1),
                           ),
                         ],
                       ),
                     ),
-                    // --- End Date Navigation and Calorie Summary Header ---
-
-                    // Meal Sections (previously implemented)
                     Padding(
-                      padding: const EdgeInsets.all(16.0), // Padding for the meal sections
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                        child: Column(
+                          children: [
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Calories Remaining',
+                                style: TextStyle(
+                                  fontFamily: 'NATS',
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 20,
+                                  height: 22/20,
+                                  letterSpacing: 0,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text('1800',
+                                        style: TextStyle(
+                                          fontFamily: 'NATS',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 20,
+                                          height: 22/20,
+                                          letterSpacing: 0,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center),
+                                    Text('Goal',
+                                        style: TextStyle(
+                                          fontFamily: 'NATS',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 15,
+                                          height: 22/15,
+                                          letterSpacing: 0,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center),
+                                  ],
+                                ),
+                                SizedBox(width: 8),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 0.0),
+                                  child: Text('-', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                                ),
+                                SizedBox(width: 8),
+                                Column(
+                                  children: [
+                                    Text('${caloriesConsumed.toStringAsFixed(0)}',
+                                        style: TextStyle(
+                                          fontFamily: 'NATS',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 20,
+                                          height: 22/20,
+                                          letterSpacing: 0,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center),
+                                    Text('Food',
+                                        style: TextStyle(
+                                          fontFamily: 'NATS',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 15,
+                                          height: 22/15,
+                                          letterSpacing: 0,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center),
+                                  ],
+                                ),
+                                SizedBox(width: 8),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 0.0),
+                                  child: Text('=', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                                ),
+                                SizedBox(width: 8),
+                                Column(
+                                  children: [
+                                    Text('$caloriesRemaining',
+                                        style: TextStyle(
+                                          fontFamily: 'NATS',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 20,
+                                          height: 22/20,
+                                          letterSpacing: 0,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center),
+                                    Text('Remaining',
+                                        style: TextStyle(
+                                          fontFamily: 'NATS',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 15,
+                                          height: 22/15,
+                                          letterSpacing: 0,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // --- Meal Sections ---
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       child: Column(
                         children: _mealTypes.map((mealType) {
                           final entries = _diaryEntriesByMeal[mealType] ?? [];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 20.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  mealType,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w500,
-                                    color: textColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                // List of existing entries
-                                if (entries.isNotEmpty)
-                                  ...entries.map((entry) => Card(
-                                        color: cardColor,
-                                        elevation: 2,
-                                        margin: const EdgeInsets.only(bottom: 10),
-                                        child: ListTile(
-                                          title: Text(entry.name, style: TextStyle(color: textColor)),
-                                          subtitle: Text(
-                                            '${entry.numberOfServings.toStringAsFixed(0)} ${entry.servingSizeUnit} - ${entry.getTotalCalories().toStringAsFixed(0)} Cal',
-                                            style: TextStyle(color: textColor.withOpacity(0.8)),
-                                          ),
-                                          trailing: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                icon: const Icon(Icons.edit, color: Colors.green),
-                                                onPressed: () async {
-                                                  final updatedEntry = await Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) => EditEntryScreen(foodEntry: entry),
-                                                    ),
-                                                  );
-                                                  if (updatedEntry != null && updatedEntry is FoodEntry) {
-                                                    _updateFoodEntry(entry, updatedEntry);
-                                                  }
-                                                },
-                                              ),
-                                              IconButton(
-                                                icon: const Icon(Icons.delete, color: Colors.red),
-                                                onPressed: () => _deleteFoodEntry(entry),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )).toList(),
-                                // "Add Food" button
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        builder: (context) => Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            ListTile(
-                                              leading: const Icon(Icons.search),
-                                              title: const Text('Search Food'),
-                                              onTap: () {
-                                                Navigator.pop(context);
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => SearchFoodScreen(
-                                                      preselectedMealType: mealType,
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                            ListTile(
-                                              leading: const Icon(Icons.camera_alt),
-                                              title: const Text('Scan Food'),
-                                              onTap: () {
-                                                Navigator.pop(context);
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => const ScanScreen(),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(color: Colors.green.withOpacity(0.7)),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                    ),
-                                    icon: Icon(Icons.add, color: Colors.green),
-                                    label: Text(
-                                      'Add Food to $mealType',
-                                      style: TextStyle(color: Colors.green, fontSize: 16),
-                                    ),
-                                  ),
+                          final mealCalories = entries.fold<double>(0, (sum, entry) => sum + entry.getTotalCalories());
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 18),
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.10),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          mealType.toUpperCase(),
+                                          style: const TextStyle(
+                                            fontFamily: 'Lexend',
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 18,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        mealCalories > 0 ? '${mealCalories.toStringAsFixed(0)}cal' : '0',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (entries.isNotEmpty)
+                                    Column(
+                                      children: [
+                                        ...entries.map((entry) => Column(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    final updatedEntry = await showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      backgroundColor: Colors.transparent,
+                                                      builder: (context) => Padding(
+                                                        padding: EdgeInsets.only(
+                                                          bottom: MediaQuery.of(context).viewInsets.bottom,
+                                                        ),
+                                                        child: EditEntryScreen(foodEntry: entry),
+                                                      ),
+                                                    );
+                                                    if (updatedEntry != null && updatedEntry is FoodEntry) {
+                                                      _updateFoodEntry(entry, updatedEntry);
+                                                    }
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        flex: 4,
+                                                        child: Text(
+                                                          entry.name,
+                                                          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        flex: 3,
+                                                        child: Text(
+                                                          '${entry.numberOfServings.toStringAsFixed(0)} ${entry.servingSizeUnit}',
+                                                          style: const TextStyle(color: Colors.white, fontSize: 15),
+                                                          textAlign: TextAlign.center,
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        flex: 3,
+                                                        child: Text(
+                                                          '${entry.getTotalCalories().toStringAsFixed(0)}cal',
+                                                          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                                                          textAlign: TextAlign.right,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const Divider(color: Colors.white24, height: 12, thickness: 1),
+                                              ],
+                                            )),
+                                      ],
+                                    ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => SearchFoodScreen(
+                                              preselectedMealType: mealType,
+                                            ),
+                                          ),
+                                        );
+                                        if (result != null && result is FoodEntry) {
+                                          setState(() {
+                                            _diaryEntriesByMeal[result.mealType]?.add(result);
+                                          });
+                                        }
+                                      },
+                                      child: const Text(
+                                        'ADD FOOD',
+                                        style: TextStyle(
+                                          fontFamily: 'NATS',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 20,
+                                          height: 22/20,
+                                          letterSpacing: 0,
+                                          color: Color(0xFF26C85A),
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }).toList(),

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -17,4 +17,8 @@ urlpatterns = [
     # USDA Food Search
     path('foods/search/', views.search_foods, name='search-foods'),
     path('foods/details/<str:fdc_id>/', views.get_food_details_api, name='food-details'),
+    path('foods/search_openfoodfacts/', views.search_foods_openfoodfacts, name='search-foods-openfoodfacts'),
+    path('user/', views.user_profile, name='user-profile'),
+    path('', include('djoser.urls')),
+    path('', include('djoser.urls.authtoken')),  # Only if you use token auth
 ]

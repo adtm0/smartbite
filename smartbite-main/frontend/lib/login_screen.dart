@@ -121,21 +121,50 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
+              const SizedBox(height: 24),
+              // SMARTBITE header
               const Text(
                 'SMARTBITE',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
-                  shadows: [Shadow(blurRadius: 3.0, color: Colors.black54)],
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 48,
+                  height: 22 / 48,
+                  letterSpacing: 0,
+                  color: Color(0xFF22A045),
                 ),
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 8),
+              // Subtitle: Uncomment the one you want to use
+              /*
               const Text(
-                'Welcome Back!',
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                'Your Personalized Food Tracker',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'NATS',
+                  fontWeight: FontWeight.w400,
+                  fontSize: 30,
+                  height: 22 / 30,
+                  letterSpacing: 0,
+                  color: Colors.black,
+                ),
               ),
-              const SizedBox(height: 40),
+              */
+              const Text(
+                'Your Personalized Food Tracker',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w400,
+                  fontSize: 24,
+                  height: 22 / 24,
+                  letterSpacing: 0,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 48),
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -143,11 +172,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   filled: true,
                   fillColor: Colors.black,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide.none,
                   ),
-                  hintStyle: const TextStyle(color: Colors.white70),
+                  hintStyle: const TextStyle(color: Colors.white),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
                 ),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
               ),
@@ -160,9 +191,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   filled: true,
                   fillColor: Colors.black,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide.none,
                   ),
-                  hintStyle: const TextStyle(color: Colors.white70),
+                  hintStyle: const TextStyle(color: Colors.white),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -175,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                 ),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => loginUser(),
               ),
@@ -187,8 +220,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.pushNamed(context, '/forgot-password');
                   },
                   child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Colors.black54),
+                    'Forgot Your Password?',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w400,
+                      fontSize: 13,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
@@ -199,10 +237,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _isLoading ? null : loginUser,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(20),
                     ),
+                    elevation: 4,
                   ),
                   child: _isLoading
                       ? const SizedBox(
@@ -214,23 +253,61 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         )
                       : const Text(
-                          'Login',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          'Sign In',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w700,
+                            fontSize: 17,
+                            color: Colors.white,
+                          ),
                         ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 32),
+              Row(
+                children: const [
+                  Expanded(child: Divider(thickness: 1, color: Colors.black26)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      'Or',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w400,
+                        fontSize: 15,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider(thickness: 1, color: Colors.black26)),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Create account option
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account?", style: TextStyle(color: Colors.black54)),
-                  TextButton(
-                    onPressed: () {
+                  const Text(
+                    "Don't have an account? ",
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w400,
+                      fontSize: 15,
+                      color: Colors.black,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
                       Navigator.pushReplacementNamed(context, '/signup');
                     },
                     child: const Text(
-                      'Sign up',
-                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                      'Create account',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ],

@@ -1,6 +1,7 @@
 // lib/edit_entry_screen.dart
 import 'package:flutter/material.dart';
 import 'models/food_entry.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class EditEntryScreen extends StatefulWidget {
   final FoodEntry foodEntry;
@@ -18,12 +19,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   late String _selectedServingUnit;
 
   final List<String> _servingSizeUnitOptions = [
-    'g',
-    'ml',
-    'oz',
-    'lb',
     'cup',
-    'serving',
+    'oz',
+    'mg',
+    'g',
+    'lb(s)',
+    'kg',
+    'ml',
+    'liter',
   ];
   final List<String> _mealTypeOptions = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
@@ -101,6 +104,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     return updatedEntry.getTotalCarbs();
   }
 
+  String _servingDisplay(String unit) {
+    return '1.0 $unit';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -108,47 +115,120 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     final cardColor = theme.cardColor;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'Edit Entry',
-          style: TextStyle(color: theme.appBarTheme.foregroundColor),
-        ),
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save, color: Colors.green),
-            onPressed: _saveChanges,
-            tooltip: 'Save Changes',
-          ),
-        ],
-      ),
+      backgroundColor: Colors.white,
+      appBar: null,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0).copyWith(top: 32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              _currentEntry.name,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+            Padding(
+              padding: const EdgeInsets.only(left: 0, right: 0, bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'Edit Entry',
+                      style: const TextStyle(
+                        fontFamily: 'Lexend',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 28,
+                        color: Colors.black,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.check, color: Colors.black, size: 28),
+                    onPressed: _saveChanges,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.only(left: 4.0, bottom: 20),
+              child: Text(
+              _currentEntry.name,
+                style: const TextStyle(
+                  fontFamily: 'Lexend',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 22,
+                  color: Colors.black,
+            ),
+                textAlign: TextAlign.left,
+              ),
+            ),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildRow(
-                    context,
-                    label: 'Meal Type',
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Meal',
+                        style: TextStyle(
+                          fontFamily: 'NATS',
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
+                          height: 22/20,
+                          letterSpacing: 0,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(
+                        width: 90,
+                        child: Align(
+                          alignment: Alignment.centerRight,
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _selectedMealType,
-                        dropdownColor: cardColor,
+                              dropdownColor: Colors.black,
+                              icon: SizedBox.shrink(),
+                              style: const TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 20,
+                                height: 22/20,
+                                letterSpacing: 0,
+                                color: Color(0xFF26C85A),
+                              ),
+                              alignment: Alignment.centerRight,
+                              selectedItemBuilder: (context) => _mealTypeOptions.map((value) {
+                                return Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    value,
+                                    style: const TextStyle(
+                                      fontFamily: 'NATS',
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 20,
+                                      height: 22/20,
+                                      letterSpacing: 0,
+                                      color: Color(0xFF26C85A),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                         onChanged: (String? newValue) {
                           if (newValue != null) {
                             setState(() {
@@ -159,64 +239,287 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                         items: _mealTypeOptions.map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
-                            child: Text(value, style: TextStyle(color: textColor)),
+                                  alignment: Alignment.centerRight,
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      value,
+                                      style: TextStyle(
+                                        fontFamily: 'NATS',
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 20,
+                                        height: 22/20,
+                                        letterSpacing: 0,
+                                        color: value == _selectedMealType ? Color(0xFF26C85A) : Colors.white,
+                                      ),
+                                    ),
+                                  ),
                           );
                         }).toList(),
                       ),
                     ),
                   ),
-                  const Divider(height: 24),
-                  _buildRow(
-                    context,
-                    label: 'Servings',
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Number of Serving',
+                        style: TextStyle(
+                          fontFamily: 'NATS',
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
+                          height: 22/20,
+                          letterSpacing: 0,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(
+                        width: 90,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () async {
+                              final controller = TextEditingController(text: _servingSizeController.text);
+                              final result = await showDialog<double>(
+                                context: context,
+                                builder: (context) {
+                                  return Dialog(
+                                    backgroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'How Much?',
+                                            style: TextStyle(
+                                              fontFamily: 'Lexend',
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 20,
+                                              height: 22/20,
+                                              letterSpacing: 0,
+                                              color: Colors.white,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 18),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         SizedBox(
                           width: 80,
+                                                child: _greenUnderline(
                           child: TextField(
-                            controller: _servingSizeController,
+                                                    controller: controller,
+                                                    autofocus: true,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            textAlign: TextAlign.right,
-                            style: TextStyle(color: textColor),
+                                                    textAlign: TextAlign.center,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'NATS',
+                                                      fontWeight: FontWeight.w400,
+                                                      fontSize: 32,
+                                                      height: 22/32,
+                                                      letterSpacing: 0,
+                                                      color: Color(0xFF26C85A),
+                                                    ),
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               isDense: true,
                             ),
-                            onChanged: (value) {
-                              // Update nutrition values immediately
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              const Text(
+                                                'Serving(s) of',
+                                                style: TextStyle(
+                                                  fontFamily: 'NATS',
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 16,
+                                                  height: 22/16,
+                                                  letterSpacing: 0,
+                                                  color: Colors.white,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${_currentEntry.servingSize ?? 1.0}${_selectedServingUnit}',
+                                            style: const TextStyle(
+                                              fontFamily: 'NATS',
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 16,
+                                              height: 22/16,
+                                              letterSpacing: 0,
+                                              color: Colors.white,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 18),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context),
+                                                child: const Text(
+                                                  'Cancel',
+                                                  style: TextStyle(
+                                                    fontFamily: 'NATS',
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 16,
+                                                    height: 22/16,
+                                                    letterSpacing: 0,
+                                                    color: Colors.white,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  final value = double.tryParse(controller.text);
+                                                  if (value != null && value > 0) {
+                                                    Navigator.pop(context, value);
+                                                  }
+                                                },
+                                                child: const Text(
+                                                  'Save',
+                                                  style: TextStyle(
+                                                    fontFamily: 'NATS',
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 16,
+                                                    height: 22/16,
+                                                    letterSpacing: 0,
+                                                    color: Color(0xFF26C85A),
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                              if (result != null) {
                               setState(() {
-                                // No need to do anything else, the build method will use the new value
-                              });
+                                  _servingSizeController.text = result.toString();
+                                });
+                              }
                             },
+                            child: Text(
+                              _servingSizeController.text,
+                              style: const TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 20,
+                                height: 22/20,
+                                letterSpacing: 0,
+                                color: Color(0xFF26C85A),
+                              ),
+                              textAlign: TextAlign.right,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        DropdownButtonHideUnderline(
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Serving Size',
+                        style: TextStyle(
+                          fontFamily: 'NATS',
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
+                          height: 22/20,
+                          letterSpacing: 0,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(
+                        width: 90,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedServingUnit,
-                            dropdownColor: cardColor,
+                              dropdownColor: Colors.black,
+                              icon: SizedBox.shrink(),
+                              style: const TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 20,
+                                height: 22/20,
+                                letterSpacing: 0,
+                                color: Color(0xFF26C85A),
+                              ),
+                              alignment: Alignment.centerRight,
+                              selectedItemBuilder: (context) => _servingSizeUnitOptions.map((unit) {
+                                return Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    _servingDisplay(unit),
+                                    style: const TextStyle(
+                                      fontFamily: 'NATS',
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 20,
+                                      height: 22/20,
+                                      letterSpacing: 0,
+                                      color: Color(0xFF26C85A),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              }).toList(),
                             onChanged: (String? newValue) {
                               if (newValue != null) {
                                 setState(() {
                                   _selectedServingUnit = newValue;
-                                  // Update current entry with new unit to trigger recalculation
-                                  _currentEntry = _currentEntry.copyWith(
-                                    servingSizeUnit: newValue,
-                                  );
+                                    _currentEntry = _currentEntry.copyWith(servingSizeUnit: newValue);
                                 });
                               }
                             },
-                            items: _servingSizeUnitOptions.map<DropdownMenuItem<String>>((String value) {
+                              items: _servingSizeUnitOptions.map<DropdownMenuItem<String>>((unit) {
                               return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value, style: TextStyle(color: textColor)),
+                                  value: unit,
+                                  alignment: Alignment.centerRight,
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      _servingDisplay(unit),
+                                      style: TextStyle(
+                                        fontFamily: 'NATS',
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 20,
+                                        height: 22/20,
+                                        letterSpacing: 0,
+                                        color: unit == _selectedServingUnit ? Color(0xFF26C85A) : Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
                               );
                             }).toList(),
+                            ),
+                          ),
                           ),
                         ),
                       ],
-                    ),
                   ),
                 ],
               ),
@@ -225,34 +528,164 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('Nutrition Facts',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
-                  const SizedBox(height: 16),
-                  _buildNutritionRow(
-                    context,
-                    label: 'Total Calories',
-                    value: '${_getCurrentCalories().toStringAsFixed(0)} kcal',
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFA6CF98),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Container(
+                            width: 35,
+                            height: 35,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF4A261),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Container(
+                            width: 15,
+                            height: 15,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF7B6DCB),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _getCurrentCalories().toStringAsFixed(0),
+                        style: const TextStyle(
+                          fontFamily: 'Lexend',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                          height: 22/20,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        'Cal',
+                        style: const TextStyle(
+                          fontFamily: 'Lexend',
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14,
+                          height: 22/14,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                  _buildNutritionRow(
-                    context,
-                    label: 'Total Protein',
-                    value: '${_getCurrentProtein().toStringAsFixed(1)} g',
-                  ),
-                  _buildNutritionRow(
-                    context,
-                    label: 'Total Fat',
-                    value: '${_getCurrentFat().toStringAsFixed(1)} g',
-                  ),
-                  _buildNutritionRow(
-                    context,
-                    label: 'Total Carbs',
-                    value: '${_getCurrentCarbs().toStringAsFixed(1)} g',
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              '${_getCurrentCarbs().toStringAsFixed(1)}g',
+                              style: const TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 32,
+                                height: 22/32,
+                                color: Color(0xFFA6CF98),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Carbs',
+                              style: TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 16,
+                                height: 22/16,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              '${_getCurrentFat().toStringAsFixed(1)}g',
+                              style: const TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 32,
+                                height: 22/32,
+                                color: Color(0xFFF4A261),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Fats',
+                              style: TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 16,
+                                height: 22/16,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              '${_getCurrentProtein().toStringAsFixed(1)}g',
+                              style: const TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 32,
+                                height: 22/32,
+                                color: Color(0xFF7B6DCB),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Protein',
+                              style: TextStyle(
+                                fontFamily: 'NATS',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 16,
+                                height: 22/16,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -286,6 +719,19 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           Text(value, style: TextStyle(fontWeight: FontWeight.w500, color: textColor)),
         ],
       ),
+    );
+  }
+
+  Widget _greenUnderline({required Widget child}) {
+    return Column(
+      children: [
+        child,
+        Container(
+          margin: const EdgeInsets.only(top: 2),
+          height: 2,
+          color: const Color(0xFF26C85A),
+        ),
+      ],
     );
   }
 } 
